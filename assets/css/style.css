@@ -11,14 +11,26 @@ body {
   width: 100%;
 }
 
+h1 {
+  font-size: 3vw;
+}
+
+p {
+  font-size: 1.5vw;
+}
+
 /*Button rules*/
+button {
+  font-size: 1.5vw;
+}
+
 .btn {
   color: white;
   background-color: rgb(71, 0, 163);
   border-radius: 5px;
   border-width: 0;
   min-height: 30px;
-  min-width: 200px;
+  width: 300px;
   text-align: left;
   margin: 5px;
 }
@@ -57,10 +69,12 @@ button:active {
 #answers {
   display: flex;
   flex-wrap: wrap;
-  width: 80px;
+  min-width: 300px;
+  max-width: 300px;
 }
 
 #answer-button {
+  flex-wrap: wrap;
   width: 100%;
 }
 
