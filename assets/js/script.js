@@ -1,22 +1,6 @@
-// Create canvas
-var canvas = document.createElement('div');
-canvas.id = 'canvas';
-document.body.appendChild(canvas);
-
-var startButton = document.createElement('button');
-startButton.textContent = 'Start Quiz';
-startButton.id = 'start-button';
-startButton.className = 'btn';
-canvas.appendChild(startButton);
-
-
-var timer = {};
-timer.timeRemaining = 0;
-timer.resetTime = function() {
-    this.timeRemaining = 5;
-};
-timer.subtractTime = function(timeToSubstract) {
-    this.timeRemaining -= timeToSubstract;
+scoresArray = JSON.parse(localStorage.getItem('scoresArray'));
+if (!scoresArray) {
+    scoresArray = [];
 };
 
 var displayViewScoresButton = function(canvas) {
@@ -128,23 +112,30 @@ var displayQuizGen = function(canvas, quizGen, timer) {
     
     quizGen.populateQuestion = function () {
 
-        var arr = quizGen.questionsArray
-        var q = arr[Math.floor(Math.random()*arr.length)];
+        if (quizGen.questionsArray.length > 0) {
+            var arr = quizGen.questionsArray
+            var q = arr[Math.floor(Math.random()*arr.length)];
+            arr.splice(quizGen.questionsArray.indexOf(q), 1);
 
-        for (i=0; i< displayElements.length; i++) {
-            if (displayElements[i] === 'question') {
-                quizGen.question.textContent = q.q;
-            }
-            else {
-                option = displayElements[i];
-                quizGen[displayElements[i]].textContent = option + '. ' + q[option];
-                if (option === q.ans) {
-                    quizGen[displayElements[i]].setAttribute('correct', 'true');
+            for (i=0; i< displayElements.length; i++) {
+                if (displayElements[i] === 'question') {
+                    quizGen.question.textContent = q.q;
                 }
                 else {
-                    quizGen[displayElements[i]].setAttribute('correct', 'false');
+                    option = displayElements[i];
+                    quizGen[displayElements[i]].textContent = option + '. ' + q[option];
+                    if (option === q.ans) {
+                        quizGen[displayElements[i]].setAttribute('correct', 'true');
+                    }
+                    else {
+                        quizGen[displayElements[i]].setAttribute('correct', 'false');
+                    }
                 }
             }
+        }
+        else {
+            timer.timeRemaining = 0;
+            displayScore(canvas, quizGen);
         }
     }
 
@@ -158,19 +149,25 @@ var displayTimer = function(canvas, quizGen, timer) {
     timerDisplay.id = 'timer-display';
     canvas.appendChild(timerDiv);
     timerDiv.appendChild(timerDisplay);
-    timerDisplay.textContent = 'Time: ' + timer.timeRemaining;
+    timerDisplay.textContent = 'Time Left: ' + timer.timeRemaining;
 
-    var changeDisplayTime = function() {
-        timer.timeRemaining --;
-        timerDisplay.textContent = 'Time: ' + timer.timeRemaining;
-        if (timer.timeRemaining === 0) {
-            clearInterval(timer.timer)
-            console.log(quizGen.score);
-            displayScore(canvas, quizGen);
-        }
-    };
+    if (quizGen.quizStarted) {
+        var changeDisplayTime = function() {
+            if (timer.timeRemaining > 0) {
+                timer.timeRemaining --;
+                timerDisplay.textContent = 'Time: ' + timer.timeRemaining;
+            }
+            else if (quizGen.questionsArray.length === 0) {
+                clearInterval(timer.timer);
+            }
+            else {
+                clearInterval(timer.timer);
+                displayScore(canvas, quizGen);
+            }
+        };
 
-    timer.timer = setInterval(changeDisplayTime, 1000);
+        timer.timer = setInterval(changeDisplayTime, 1000);
+    }
 }
 
 
@@ -187,13 +184,12 @@ var startQuiz = function() {
 
     timer.resetTime();
     var quizGen = createQuizGenerator();
+    quizGen.quizStarted = true;
 
     displayViewScoresButton(canvas);
     displayQuizGen(canvas, quizGen, timer);
     displayTimer(canvas, quizGen, timer);
 }
-
-startButton.addEventListener('click', startQuiz);
 
 var displayScore = function(canvas, quizGen) {
     quizGen.quiz.remove();
@@ -205,9 +201,71 @@ var displayScore = function(canvas, quizGen) {
     scoreDiv.id = 'score-div';
     scoreContainerDiv.appendChild(scoreDiv);
 
+    var allDone = document.createElement('h2');
+    allDone.textContent = 'All done.';
+    allDone.id = 'all-done';
+    scoreDiv.appendChild(allDone);
+
+
     var score = document.createElement('p');
     score.textContent = 'Your Score:' + quizGen.score;
     score.id = 'result-score';
     scoreDiv.appendChild(score);
+
+    var initialsDiv = document.createElement('div');
+    initialsDiv.id = 'initials-div';
+    scoreDiv.appendChild(initialsDiv);
+    var initialsText = document.createElement('p');
+    initialsText.textContent = 'Enter initials: ';
+    initialsText.id = 'initials-text';
+    initialsDiv.appendChild(initialsText);
+    var initialsInput = document.createElement('input');
+    initialsInput.id = 'initials-input';
+    initialsDiv.appendChild(initialsInput);
+    var initialsButton = document.createElement('button');
+    initialsButton.id = 'initials-button';
+    initialsButton.className = 'btn';
+    initialsButton.textContent = 'Submit';
+    initialsDiv.appendChild(initialsButton);
+
+    var getInitials = function () {
+        var initialsInput = document.getElementById('initials-input');
+        var initials = initialsInput.value;
+        console.log([initials, quizGen.score]);
+        scoresArray.push([initials, quizGen.score]);
+        localStorage.setItem('scoresArray', JSON.stringify(scoresArray));
+        console.log(scoresArray[0]);
+    }
+
+    initialsButton.addEventListener('click', getInitials);
+    
 }
+
+// Create canvas
+var canvas = document.createElement('div');
+canvas.id = 'canvas';
+document.body.appendChild(canvas);
+
+var timer = {};
+timer.timeRemaining = 0;
+timer.resetTime = function() {
+    this.timeRemaining = 75;
+};
+timer.subtractTime = function(timeToSubstract) {
+    this.timeRemaining -= timeToSubstract;
+};
+
+var quizGen = createQuizGenerator();
+
+displayViewScoresButton(canvas);
+
+var startButton = document.createElement('button');
+startButton.textContent = 'Start Quiz';
+startButton.id = 'start-button';
+startButton.className = 'btn';
+canvas.appendChild(startButton);
+
+displayTimer(canvas, quizGen, timer);
+
+startButton.addEventListener('click', startQuiz);
 
