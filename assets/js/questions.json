@@ -1,0 +1,18 @@
+[
+    {
+    "question":"What is the way to declare a variable?",
+    "a": "const",
+    "b": "let",
+    "c": "function",
+    "d": "var",
+    "answer": "d"
+    },
+    {
+    "question":"What is the way to declare a function?",
+    "a": "const",
+    "b": "let",
+    "c": "function",
+    "d": "var",
+    "answer": "c"
+    }
+]
